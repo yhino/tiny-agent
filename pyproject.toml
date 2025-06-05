@@ -1,0 +1,21 @@
+[project]
+name = "tiny-agent"
+version = "0.1.0"
+description = "My tiny ai agent"
+requires-python = ">=3.12"
+authors = [
+    { name = "Yoshiyuki HINO", email = "yhinoz@gmail.com" }
+]
+dependencies = [
+    "anthropic>=0.52.2",
+    "click>=8.2.1",
+    "dotenv>=0.9.9",
+    "rich>=14.0.0",
+]
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.2.0",
+    "ruff>=0.11.12",
+    "ty>=0.0.1a8",
+]
