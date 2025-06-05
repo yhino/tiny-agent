@@ -5,6 +5,7 @@ from typing import AsyncGenerator
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from mcp import ClientSession, stdio_client, StdioServerParameters
+from pydantic_settings import BaseSettings
 from rich.console import Console
 from rich.markdown import Markdown
 from rich.prompt import Prompt
@@ -12,9 +13,15 @@ from rich.prompt import Prompt
 console = Console()
 
 
+class Config(BaseSettings):
+    max_tokens: int = 2024
+    model_name: str = "claude-sonnet-4-20250514"
+
+
 class TinyAgent:
-    def __init__(self, llm_client: Anthropic):
-        self.llm_client = llm_client
+    def __init__(self, config: Config | None):
+        self.config = config or Config()
+        self.llm_client = Anthropic()
         self.session: ClientSession | None = None
         self.tools: list[dict] = []
         self.exit_stack = AsyncExitStack()
@@ -66,8 +73,8 @@ class TinyAgent:
     async def process_query(self, query: str) -> AsyncGenerator[str, None]:
         messages = [{"role": "user", "content": query}]
         response = self.llm_client.messages.create(
-            max_tokens=1024,
-            model="claude-3-5-sonnet-latest",
+            max_tokens=self.config.max_tokens,
+            model=self.config.model_name,
             tools=self.tools,
             messages=messages,
         )
@@ -108,8 +115,8 @@ class TinyAgent:
                         }
                     )
                     response = self.llm_client.messages.create(
-                        max_tokens=1024,
-                        model="claude-3-5-sonnet-latest",
+                        max_tokens=self.config.max_tokens,
+                        model=self.config.model_name,
                         tools=self.tools,
                         messages=messages,
                     )
@@ -120,8 +127,7 @@ class TinyAgent:
 
 async def main() -> None:
     load_dotenv()
-    llm_client = Anthropic()
-    agent = TinyAgent(llm_client)
+    agent = TinyAgent(Config())
 
     try:
         await agent.connect_mcp_servers()
